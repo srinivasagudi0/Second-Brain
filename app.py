@@ -8,7 +8,14 @@ st.write("A smart note-taking and task-manager app that doesn't just store text,
 
 # lets make a simple note taking feature.
 
-if st.button("Take a note"):
+mode = st.selectbox("Select mode", ["Take a note"]) # ADD MORE MODES HERE LATER
+
+if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
-    if st.button("Save note"):
-        st.write("Note saved:", note)
+    if st.button("Save Note"):
+        # Here I would send it to support and save it in a db.
+        if note.strip() != "":
+            # save_note_to_db(note) # This is a placeholder for the actual function that would save the note to a database.
+            st.success("Note saved successfully!")
+        else:
+            st.warning("Please enter a note before saving.")
