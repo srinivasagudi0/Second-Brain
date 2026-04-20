@@ -1,8 +1,11 @@
 # will add content here once tested and works fine
 import streamlit as st
+from support import init_db, save_note_to_db
 
 st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
+
+init_db()
 
 # complex app, lets speed the development by taking simple steps
 
@@ -15,7 +18,8 @@ if mode == "Take a note":
     if st.button("Save Note"):
         # Here I would send it to support and save it in a db.
         if note.strip() != "":
-            # save_note_to_db(note) # This is a placeholder for the actual function that would save the note to a database.
+            # here I will call later call AI to summarize, categorize and many more things, but for now lets just save it in a db.
+            save_note_to_db(note)
             st.success("Note saved successfully!")
         else:
             st.warning("Please enter a note before saving.")
