@@ -1,6 +1,7 @@
 # all the supporting funcrtions stay here
 
 import sqlite3
+from openai import OpenAI
 
 db = "notes.db"
 
@@ -14,6 +15,8 @@ def init_db():
     conn.close()
 
 def save_note_to_db(note):
+    # will soon add so 
+
     conn = sqlite3.connect(db)
     c = conn.cursor()
     c.execute("INSERT INTO notes (content) VALUES (?)", (note,))

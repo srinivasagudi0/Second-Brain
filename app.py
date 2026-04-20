@@ -1,6 +1,6 @@
 # will add content here once tested and works fine
 import streamlit as st
-from support import init_db, save_note_to_db
+from support import init_db, save_note_to_db, get_all_notes
 
 st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
@@ -23,3 +23,11 @@ if mode == "Take a note":
             st.success("Note saved successfully!")
         else:
             st.warning("Please enter a note before saving.")
+
+if mode == "View notes":
+    notes = get_all_notes()
+    if notes:
+        for note in notes:
+            st.write(note[1])  # Display the content of each note
+    else:
+        st.write("No notes found.")
