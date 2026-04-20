@@ -19,3 +19,11 @@ def save_note_to_db(note):
     c.execute("INSERT INTO notes (content) VALUES (?)", (note,))
     conn.commit()
     conn.close()
+
+def get_all_notes():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("SELECT * FROM notes")
+    notes = c.fetchall()
+    conn.close()
+    return notes
