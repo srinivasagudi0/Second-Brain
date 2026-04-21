@@ -2,6 +2,7 @@
 
 import sqlite3
 from openai import OpenAI
+import streamlit as st
 
 db = "notes.db"
 
@@ -132,11 +133,15 @@ def delete_note(note_id):
     conn.close()
 
 # add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
-def confirm_del(note_id):
-    import streamlit as st
-
-    if st.checkbox("I understand that this will delete the note."):
-        if st.button("Delete Note"):
-            delete_note(note_id)
-            st.success("Note has been deleted.")
-            
+@st.dialog("Confirm Action")
+def confirm_dialog(note_id):
+    st.write(f"Are you sure you want to delete the note?")
+    
+    if st.button("Yes"):
+        # Save data to session state if needed outside the dialog
+        st.session_state.deleted_item = note_id
+        # Use st.rerun() to close the dialog and refresh the app
+        delete_note(note_id)
+        st.rerun()
+    if st.button("No"):
+        st.rerun()
