@@ -28,7 +28,8 @@ if mode == "View notes":
     notes = get_all_notes()
     if notes:
         for note in notes:
-            st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"); st.markdown("---")
+            st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"); st.markdown("---")
+        
 
     else:
         st.write("No notes found.")
