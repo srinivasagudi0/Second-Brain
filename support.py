@@ -114,10 +114,10 @@ def save_note_to_db(note):
     conn.close()
 
 def get_all_notes():
+   # update to get stuff from the new db structure
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    c.execute("SELECT * FROM notes")
+    c.execute("SELECT id, content, due_date, category, summary, priority FROM notes")
     notes = c.fetchall()
     conn.close()
     return notes
-

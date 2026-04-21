@@ -28,6 +28,6 @@ if mode == "View notes":
     notes = get_all_notes()
     if notes:
         for note in notes:
-            st.write(note[1])  # Display the content of each note
+            st.write(note)  # Display the full content for testing purposes. Later, we can format this better and show summaries, categories, etc.
     else:
         st.write("No notes found.")
