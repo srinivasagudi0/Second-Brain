@@ -2,6 +2,12 @@
 import streamlit as st
 from support import init_db, save_note_to_db, get_all_notes, delete_note
 
+# before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
+import os
+if "OPENAI_API_KEY" not in os.environ:
+    st.warning("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable to use this app.")
+    st.stop()
+
 st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
 
