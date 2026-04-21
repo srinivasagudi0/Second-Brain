@@ -43,6 +43,8 @@ if mode == "View notes":
                 st.caption(f"Due: {note[2] or 'N/A'} | Category: {note[3] or 'N/A'} | ID: {note[0]}")
             with col2:
                 if st.button("✏️ Edit", key=f"edit_{note[0]}"):
+                    # small experiment, if this works we can use it for other things as well, like maybe a quick view of the note content in a dialog or something like that.
+                    mode = "Edit note"
                     st.session_state.edit_note_id = note[0]
                     st.rerun()
             with col3:
