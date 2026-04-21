@@ -28,6 +28,6 @@ if mode == "View notes":
     notes = get_all_notes()
     if notes:
         for note in notes:
-            st.write(note)  # Display the full content for testing purposes. Later, we can format this better and show summaries, categories, etc.
+            st.write(f"ID: {note[0]} | Due: {note[2]} | Category: {note[3]} | Summary: {note[4]} | Priority: {note[5]}"); st.markdown("---")
     else:
         st.write("No notes found.")
