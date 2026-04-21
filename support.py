@@ -47,7 +47,7 @@ Rules:
             model="gpt-4o",
             response_format={"type": "json_object"},
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": system_prompt + "Today's date and time is: " + __import__("datetime").datetime.now().isoformat()},
                 {"role": "user", "content": prompt}
             ]
         )
