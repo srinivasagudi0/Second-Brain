@@ -40,6 +40,7 @@ Rules:
 - Output JSON only. No markdown, no explanations.
 - "priority" must be an integer 1 to 5, or null.
 - If unknown, use null.
+-  the summary should be a concise one-line TODO summary, ideally starting with a verb (e.g. "Buy groceries", "Call Alice", "Finish report").
 """
     try:
         response = client.chat.completions.create(
