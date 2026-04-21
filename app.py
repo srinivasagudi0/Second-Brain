@@ -30,9 +30,12 @@ if mode == "View notes":
         for note in notes:
             if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
                 delete_note(note[0])
+                st.rerun()  # Refresh the page to update the notes list after deletion
+                st.snow()
             st.markdown("---")
         if st.checkbox("Show raw data"):
             st.write(notes)
+        
 
 
     else:
