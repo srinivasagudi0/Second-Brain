@@ -1,6 +1,6 @@
 # will add content here once tested and works fine
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, delete_note
+from support import init_db, save_note_to_db, get_all_notes, delete_note, confirm_del
 
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
 import os
@@ -39,7 +39,7 @@ if mode == "View notes":
     if notes:
         for note in notes:
             if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
-                delete_note(note[0])
+                confirm_del(note[0])
                 st.rerun()  # Refresh the page to update the notes list after deletion
                 st.snow()
             st.markdown("---")
