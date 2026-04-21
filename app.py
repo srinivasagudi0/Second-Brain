@@ -17,14 +17,12 @@ init_db()
 
 # lets make a simple note taking feature.
 
-mode = st.selectbox("Select mode", ["Take a note", "View notes", "Edit note", "Delete note"]) # ADD MORE MODES HERE LATER
-#dumbv i forghot 
+mode = st.selectbox("Select mode", ["Take a note", "View notes", "Edit note"]) # ADD MORE MODES HERE LATER
 
-# Handle mode switching from edit/delete buttons
+# Handle mode switching from edit button
 if "edit_note_id" in st.session_state and st.session_state.edit_note_id:
     mode = "Edit note"
-elif "delete_note_id" in st.session_state and st.session_state.delete_note_id:
-    mode = "Delete note"
+
 if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
     if st.button("Save Note"):
@@ -46,14 +44,14 @@ if mode == "View notes":
             col1, col2, col3 = st.columns([3, 1, 1])
             with col1:
                 st.write(f"**[{note[5]}]** {note[4]}")
-                st.caption(f"Due: {note[2] or 'N/A'} | Category: {note[3] or 'N/A'} | ID: {note[0]}")            
+                st.caption(f"Due: {note[2] or 'N/A'} | Category: {note[3] or 'N/A'} | ID: {note[0]}")
             with col2:
                 if st.button("✏️ Edit", key=f"edit_{note[0]}"):
                     st.session_state.edit_note_id = note[0]
                     st.rerun()
             with col3:
                 if st.button("🗑️ Delete", key=f"delete_{note[0]}"):
-                    st.session_state.delete_note_id = note[0]
+                    confirm_dialog(note[0])
                     st.rerun()
             st.markdown("---")
         if st.checkbox("Show raw data"):
