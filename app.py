@@ -1,6 +1,6 @@
 # will add content here once tested and works fine
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes
+from support import init_db, save_note_to_db, get_all_notes, delete_note
 
 st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
@@ -29,7 +29,12 @@ if mode == "View notes":
     if notes:
         for note in notes:
             st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"); st.markdown("---")
-        
+        if st.checkbox("Show raw data"):
+            # delete that note from db if st.button("Delete Note"):
+            # figure out how to get the id of the note to delete it from db
+            id = note[0]
+
+            delete_note()
 
     else:
         st.write("No notes found.")
