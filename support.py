@@ -130,3 +130,13 @@ def delete_note(note_id):
     c.execute("DELETE FROM notes WHERE id=?", (note_id,))
     conn.commit()
     conn.close()
+
+# add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
+def confirm_del(note_id):
+    import streamlit as st
+
+    if st.checkbox("I understand that this will delete the note."):
+        if st.button("Delete Note"):
+            delete_note(note_id)
+            st.success("Note has been deleted.")
+            
