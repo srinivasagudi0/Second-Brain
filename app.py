@@ -32,6 +32,10 @@ if mode == "Take a note":
 
 if mode == "View notes":
     notes = get_all_notes()
+
+    st.write("Checking the notes will be completely delete them, so be careful with that. I will add a confirmation step later, but for now, just be careful.")
+
+### add a confirmation step later, will research how to do it s because i dont kno whow to do it.
     if notes:
         for note in notes:
             if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
