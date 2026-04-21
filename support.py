@@ -122,3 +122,11 @@ def get_all_notes():
     notes = c.fetchall()
     conn.close()
     return notes
+
+# delete th note by id
+def delete_note(note_id):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("DELETE FROM notes WHERE id=?", (note_id,))
+    conn.commit()
+    conn.close()
