@@ -169,4 +169,5 @@ def edit_note(note_id):
             c.execute("UPDATE notes SET summary=? WHERE id=?", (new_content, note_id))
             conn.commit()
             conn.close()
+            st.rerun()
             st.success("Note updated successfully!")
