@@ -38,10 +38,15 @@ if mode == "View notes":
 ### now make it editable, flexible.
     if notes:
         for note in notes:
-            if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
-                confirm_dialog(note[0])
-                st.rerun()  # Refresh the page to update the notes list after deletion
-                st.snow()
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+            with col2:
+                if st.button("Edit", key=f"edit_{note[0]}"):
+                    st.info("Edit functionality is not implemented yet.")
+            with col3:
+                if st.button("Delete", key=f"delete_{note[0]}"):
+                    confirm_dialog(note[0])
             st.markdown("---")
         if st.checkbox("Show raw data"):
             st.write(notes)
