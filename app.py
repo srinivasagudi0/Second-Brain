@@ -1,6 +1,6 @@
 # will add content here once tested and works fine
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, confirm_dialog
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note
 
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
 import os
@@ -43,7 +43,7 @@ if mode == "View notes":
                 st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
             with col2:
                 if st.button("Edit", key=f"edit_{note[0]}"):
-                    st.info("Edit functionality is not implemented yet.")
+                    edit_note(note[0])
             with col3:
                 if st.button("Delete", key=f"delete_{note[0]}"):
                     confirm_dialog(note[0])
