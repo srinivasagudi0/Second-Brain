@@ -160,7 +160,7 @@ def edit_note(note_id):
     # shoudl be good now since I took of the note
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    c.execute("SELECT summary FROM notes WHERE id=?", (note_id,))
+    c.execute("SELECT summary, due_date, category, priority, FROM notes WHERE id=?,id=?,id=?,id=?", (note_id, note_id, note_id, note_id))
     note = c.fetchone()
     conn.close()
 
@@ -168,11 +168,15 @@ def edit_note(note_id):
 
     if note:
         new_summary = st.text_area("Note summary", value=note[0])
+        new_due_date = st.date_input("Due date (YYYY-MM-DD)", value=note[1] or "")
+        new_cat = st.text_input("Category", value=note[2] or "")
+        new_priority = st.slider("Priority", min_value=1, max_value=5, value=note[3] if note[3] is not None else 0)
+
         if st.button("Save"):
             conn = sqlite3.connect(db)
             c = conn.cursor()
             # changed it from content to summary.
-            c.execute("UPDATE notes SET summary=? WHERE id=?", (new_summary, note_id))
+            c.execute("UPDATE notes SET summary=?,due_date=?, category=?, priority=? WHERE id=?", (new_summary, new_due_date, new_cat, new_priority, note_id))
             conn.commit()
             conn.close()
             st.rerun()
