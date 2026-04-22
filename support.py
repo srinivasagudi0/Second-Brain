@@ -153,6 +153,7 @@ def edit_note(note_id):
 
 
     #for now will only be able to edit the content, we will get over this soon, we are getting somewhere
+    # working to able to edi the category, due date and priority now.
     #with st.dialog("Edit Note"):
     st.write(f"Edit the note with id: {note_id}")
 
