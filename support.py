@@ -147,32 +147,32 @@ def confirm_dialog(note_id):
         st.rerun()
 
 # edit feature is currently not implemented yet, so this one will work as a edit function
+@st.dialog("Edit Note")
 def edit_note(note_id):
     import streamlit as st
 
 
     #for now will only be able to edit the content, we will get over this soon, we are getting somewhere
-    with st.dialog("Edit Note"):
-        st.write(f"Edit the note with id: {note_id}")
+    #with st.dialog("Edit Note"):
+    st.write(f"Edit the note with id: {note_id}")
 
-        conn = sqlite3.connect(db)
-        c = conn.cursor()
-        c.execute("SELECT summary FROM notes WHERE id=?", (note_id,))
-        note = c.fetchone()
-        conn.close()
+    # shoudl be good now since I took of the note
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("SELECT summary FROM notes WHERE id=?", (note_id,))
+    note = c.fetchone()
+    conn.close()
 
-        # should be patched and maybe perfect for now, if this works we can scale it by a lot.
+    # should be patched and maybe perfect for now, if this works we can scale it by a lot.
 
-        if note:
-            new_summary = st.text_area("Note summary", value=note[0])
-            if st.button("Save"):
-                conn = sqlite3.connect(db)
-                c = conn.cursor()
-                # changed it from content to summary.
-                c.execute("UPDATE notes SET summary=? WHERE id=?", (new_summary, note_id))
-                conn.commit()
-                conn.close()
-                # please work, I beg you(joking should work)
-            
-                st.rerun()
-                st.success("Note updated successfully!")
+    if note:
+        new_summary = st.text_area("Note summary", value=note[0])
+        if st.button("Save"):
+            conn = sqlite3.connect(db)
+            c = conn.cursor()
+            # changed it from content to summary.
+            c.execute("UPDATE notes SET summary=? WHERE id=?", (new_summary, note_id))
+            conn.commit()
+            conn.close()
+            st.rerun()
+            st.success("Note updated successfully!")
