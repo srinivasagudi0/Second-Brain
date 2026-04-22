@@ -146,3 +146,26 @@ def confirm_dialog(note_id):
     if st.button("No"):
         st.rerun()
 
+# edit feature is currently not implemented yet, so this one will work as a edit function
+def edit_note(note_id):
+    import streamlit as st
+
+    st.dialog("Edit Note")
+    st.write(f"Edit the note with id: {note_id}")
+
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("SELECT content FROM notes WHERE id=?", (note_id,))
+    note = c.fetchone()
+    conn.close()
+    #for now will only be able to edit the content, we will get over this soon, we are getting somewhere
+
+    if note:
+        new_content = st.text_area("Note content", value=note[0])
+        if st.button("Save"):
+            conn = sqlite3.connect(db)
+            c = conn.cursor()
+            c.execute("UPDATE notes SET content=? WHERE id=?", (new_content, note_id))
+            conn.commit()
+            conn.close()
+            st.success("Note updated successfully!")
