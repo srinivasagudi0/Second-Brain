@@ -1,6 +1,9 @@
 # Second-Brain
 A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI. Also works best in CLI(you get an api) and UI(try my Streamlit app).
 
+# NEXT Feature(Planning here):
+Add a basic filter that uses both text searchup and category, not easy but focusing n filterablity(idk if the word is real) now.
+ 
 
 
 # Trying to Achieve
