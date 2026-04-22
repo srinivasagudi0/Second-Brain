@@ -165,7 +165,8 @@ def edit_note(note_id):
         if st.button("Save"):
             conn = sqlite3.connect(db)
             c = conn.cursor()
-            c.execute("UPDATE notes SET content=? WHERE id=?", (new_content, note_id))
+            # this thin was changing the content(which is invisible), now it should change the summary(which is visible to USER)
+            c.execute("UPDATE notes SET summary=? WHERE id=?", (new_content, note_id))
             conn.commit()
             conn.close()
             st.success("Note updated successfully!")
