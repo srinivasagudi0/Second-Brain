@@ -166,6 +166,8 @@ def edit_note(note_id):
             conn = sqlite3.connect(db)
             c = conn.cursor()
             # this thin was changing the content(which is invisible), now it should change the summary(which is visible to USER)
+            # something is wrong over here, it is not updating the summary, it is updating the content, but the content is not visible to user, so it seems like it is not updating, but it is updating the content, we need to change the summary instead of content, because summary is what is visible to user.
+            
             c.execute("UPDATE notes SET summary=? WHERE id=?", (new_content, note_id))
             conn.commit()
             conn.close()
