@@ -132,26 +132,6 @@ def delete_note(note_id):
     conn.commit()
     conn.close()
 
-# get a single note by id
-def get_note_by_id(note_id):
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("SELECT id, content, due_date, category, summary, priority FROM notes WHERE id=?", (note_id,))
-    note = c.fetchone()
-    conn.close()
-    return note
-
-# update a note by id
-def update_note(note_id, content, due_date, category, summary, priority):
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute(
-        "UPDATE notes SET content=?, due_date=?, category=?, summary=?, priority=? WHERE id=?",
-        (content, due_date, category, summary, priority, note_id),
-    )
-    conn.commit()
-    conn.close()
-
 # add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
 @st.dialog("Confirm Action")
 def confirm_dialog(note_id):
