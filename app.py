@@ -20,7 +20,9 @@ init_db()
 
 # lets make a simple note taking feature.
 
-mode = st.selectbox("Select mode", ["Take a note", "View notes"]) # ADD MORE MODES HERE LATER
+st.sidebar.title("Navigation")
+
+mode = st.sidebar.selectbox("Select mode", ["Take a note", "View notes"]) # ADD MORE MODES HERE LATER
 # dumb i fogot
 if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
@@ -88,4 +90,3 @@ if mode == "View notes":
             st.write(notes)
     else:
         st.write("No notes found.")
-
