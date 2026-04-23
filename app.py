@@ -80,7 +80,10 @@ if mode == "View notes":
             col1, col2, col3 = st.columns([3, 1, 1])
             
             with col1:
-                st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+                if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
+                    pass
+                    # add this task to a completed taks db using support.py finction(namee TBD)
+                    # delete_note(note[0]) So it won't show in the notes sections.
             with col2:
                 if st.button("Edit", key=f"edit_{note[0]}"):
                     edit_note(note[0])
@@ -96,3 +99,6 @@ if mode == "View notes":
 # new mode aftr a long time
 if mode == "Completed Tasks":
     st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
+    # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them or move them back to notes if they are not completed by mistake. I will work on this later, for now I will just show a message that this feature is under development.
+    # working on support now, did all the thiking here
+    
