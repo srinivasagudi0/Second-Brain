@@ -41,19 +41,20 @@ if mode == "View notes":
 
     # search and everything related to it is here 🔍
 
-    corner, left, middle,right = st.columns([1, 2, 2, 1])
+    corner, left, middle,right, rightcorner = st.columns([1, 2, 2, 1, 1])
     with corner:
-        st.write("Priority: 1-5")
+        st.slider('Priority Filter', min_value=1, max_value=5, value=3, key='priority_filter')
     with left:
-        st.write("Search notes by summary:")
+        search_query = st.selectbox("Search notes by summary", options=[""] + index) 
     with middle:
         due_date_filter = st.date_input("Filter by due date (optional)", value=None)
     with right:
-        category_filter = st.text_input("Filter by category (optional)")
+        category_filter = st.text_input("category (optional)")
+    with rightcorner:
+        st.button("Apply Filters")
     
 
     #search_query = st.selectbox("Search notes by summary", options=[""] + index) 
-    
     '''
     if search_query:
         filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
