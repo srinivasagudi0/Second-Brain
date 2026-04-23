@@ -33,12 +33,19 @@ if mode == "Take a note":
 
 if mode == "View notes":
     notes = get_all_notes()
-    search_query = st.text_input("Search notes")
+    # writing filtering and searching features here now, this is going to be a bit tricky but i did this type of features before so I am pretty sure I can do it again, I will start with a simple search feature and then move on to more complex filtering features.
+    index=[]
+
+    for note in notes:
+        index.append(note[1])
+
+    search_query = st.selectbox("Search notes by summary", options=[""] + index) 
     if search_query:
         filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
         st.write("Search results:")
-        for note in filtered_notes:
-            st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+        if filtered_notes:
+            st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
+            
     st.write("Your notes:")
 
 ### now make it editable, flexible.
@@ -59,5 +66,5 @@ if mode == "View notes":
     else:
         st.write("No notes found.")
 
-    # writing filtering and searching features here now, this is going to be a bit tricky but i did this type of features before so I am pretty sure I can do it again, I will start with a simple search feature and then move on to more complex filtering features.
+    
     
