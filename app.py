@@ -2,6 +2,7 @@
 import streamlit as st
 from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note
 
+
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
 import os
 if "OPENAI_API_KEY" not in os.environ:
@@ -32,8 +33,13 @@ if mode == "Take a note":
 
 if mode == "View notes":
     notes = get_all_notes()
-
-    st.write("Checking the notes will be completely delete them, so be careful with that. I will add a confirmation step later, but for now, just be careful.")
+    search_query = st.text_input("Search notes")
+    if search_query:
+        filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
+        st.write("Search results:")
+        for note in filtered_notes:
+            st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+    st.write("Your notes:")
 
 ### now make it editable, flexible.
     if notes:
@@ -53,3 +59,5 @@ if mode == "View notes":
     else:
         st.write("No notes found.")
 
+    # writing filtering and searching features here now, this is going to be a bit tricky but i did this type of features before so I am pretty sure I can do it again, I will start with a simple search feature and then move on to more complex filtering features.
+    
