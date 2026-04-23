@@ -43,7 +43,7 @@ if mode == "View notes":
 
     # search and everything related to it is here 🔍
 
-    corner, left, middle,right, rightcorner = st.columns([1, 2, 2, 1, 1])
+    corner, left, middle,right = st.columns([1, 2, 2, 1])
     with corner:
         st.slider('Priority Filter', min_value=1, max_value=5, value=3, key='priority_filter')
     with left:
@@ -52,33 +52,24 @@ if mode == "View notes":
         due_date_filter = st.date_input("Filter by due date (optional)", value=None)
     with right:
         category_filter = st.text_input("category (optional)")
-    with rightcorner:
-        if st.button("Apply Filters"):
-            filtered_notes = notes
-            if search_query:
-                filtered_notes = [note for note in filtered_notes if search_query.lower() in note[1].lower()]
-            if due_date_filter:
-                filtered_notes = [note for note in filtered_notes if note[2] and datetime.strptime(note[2], "%Y-%m-%d").date() == due_date_filter]
-            if category_filter:
-                filtered_notes = [note for note in filtered_notes if note[3] and category_filter.lower() in note[3].lower()]
-            st.write("Filtered results:")
-            if filtered_notes:
-                for note in filtered_notes:
-                    st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
-            else:
-                st.write("No notes found matching the filters.")
+    
+    if st.button("Apply Filters"):
+        filtered_notes = notes
+        if search_query:
+            filtered_notes = [note for note in filtered_notes if search_query.lower() in note[1].lower()]
+        if due_date_filter:
+            filtered_notes = [note for note in filtered_notes if note[2] and datetime.strptime(note[2], "%Y-%m-%d").date() == due_date_filter]
+        if category_filter:
+            filtered_notes = [note for note in filtered_notes if note[3] and category_filter.lower() in note[3].lower()]
+        st.write("Filtered results:")
+        if filtered_notes:
+            for note in filtered_notes:
+                st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
+        else:
+            st.write("No notes found matching the filters.")
     
 
-    #search_query = st.selectbox("Search notes by summary", options=[""] + index) 
-    '''
-    if search_query:
-        filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
-        st.write("Search results:")
-        if filtered_notes:
-            st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
-
-    st.write("Your notes:")
-    ''' 
+    
 
 ### now make it editable, flexible.
     if notes:
