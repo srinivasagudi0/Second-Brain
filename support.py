@@ -1,5 +1,6 @@
 # all the supporting funcrtions stay here
 
+import datetime
 import sqlite3
 from openai import OpenAI
 import streamlit as st
@@ -185,3 +186,40 @@ def edit_note(note_id):
             st.rerun()
             st.success("Note updated successfully!")
     
+
+# for mode delete notes mode
+def init_del_notes_db():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS deleted_notes
+                 (
+              id INTEGER PRIMARY KEY AUTOINCREMENT, 
+              content TEXT,
+              due_date TEXT,
+              category TEXT,
+              summary TEXT,
+              priority INTEGER,
+              deleted_at TEXT
+              )''')
+    conn.commit()
+    conn.close()
+
+# add a note to the deleted notes db, this is for the delete mode, we will be able to see the deleted notes and restore them if needed.
+def add_to_deleted_notes(content,due_date, category, summary, priority):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO deleted_notes (content, due_date, category, summary, priority, deleted_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (content, due_date, category, summary, priority, datetime.now().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    
+# get all deleted notes, this is for the delete mode, we will be able to see the deleted notes and restore them if needed.
+def get_all_deleted_notes():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("SELECT id, content, due_date, category, summary, priority, deleted_at FROM deleted_notes")
+    notes = c.fetchall()
+    conn.close()
+    return notes
