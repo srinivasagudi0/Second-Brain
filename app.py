@@ -22,7 +22,7 @@ init_db()
 
 st.sidebar.title("Navigation")
 
-mode = st.sidebar.selectbox("Select mode", ["Take a note", "View notes"]) # ADD MORE MODES HERE LATER
+mode = st.sidebar.selectbox("Select mode", ["Take a note", "View notes", "Completed Tasks"]) # ADD MORE MODES HERE LATER
 # dumb i fogot
 if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
@@ -71,12 +71,14 @@ if mode == "View notes":
             st.write("No notes found matching the filters.")
     
 
-    
+    #cooldown for easier brain processing
+        st.markdown("---")
 
 ### now make it editable, flexible.
     if notes:
         for note in notes:
             col1, col2, col3 = st.columns([3, 1, 1])
+            
             with col1:
                 st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
             with col2:
@@ -90,3 +92,7 @@ if mode == "View notes":
             st.write(notes)
     else:
         st.write("No notes found.")
+
+# new mode aftr a long time
+if mode == "Completed Tasks":
+    st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
