@@ -39,14 +39,29 @@ if mode == "View notes":
     for note in notes:
         index.append(note[1])
 
-    search_query = st.selectbox("Search notes by summary", options=[""] + index) 
+    # search and everything related to it is here 🔍
+
+    corner, left, middle,right = st.columns([1, 2, 2, 1])
+    with corner:
+        st.write("Priority: 1-5")
+    with left:
+        st.write("Search notes by summary:")
+    with middle:
+        due_date_filter = st.date_input("Filter by due date (optional)", value=None)
+    with right:
+        category_filter = st.text_input("Filter by category (optional)")
+    
+
+    s#earch_query = st.selectbox("Search notes by summary", options=[""] + index) 
+    '''
     if search_query:
         filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
         st.write("Search results:")
         if filtered_notes:
             st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
-            
+
     st.write("Your notes:")
+    ''' 
 
 ### now make it editable, flexible.
     if notes:
@@ -66,5 +81,4 @@ if mode == "View notes":
     else:
         st.write("No notes found.")
 
-    
     
