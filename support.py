@@ -160,7 +160,7 @@ def edit_note(note_id):
     # shoudl be good now since I took of the note
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    c.execute("SELECT summary, due_date, category, priority, FROM notes WHERE id=?,id=?,id=?,id=?", (note_id, note_id, note_id, note_id))
+    c.execute("SELECT summary, due_date, category, priority FROM notes WHERE id=?", (note_id,))
     note = c.fetchone()
     conn.close()
 
