@@ -1,4 +1,6 @@
 # will add content here once tested and works fine
+from datetime import datetime
+
 import streamlit as st
 from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note
 
@@ -51,7 +53,20 @@ if mode == "View notes":
     with right:
         category_filter = st.text_input("category (optional)")
     with rightcorner:
-        st.button("Apply Filters")
+        if st.button("Apply Filters"):
+            filtered_notes = notes
+            if search_query:
+                filtered_notes = [note for note in filtered_notes if search_query.lower() in note[1].lower()]
+            if due_date_filter:
+                filtered_notes = [note for note in filtered_notes if note[2] and datetime.strptime(note[2], "%Y-%m-%d").date() == due_date_filter]
+            if category_filter:
+                filtered_notes = [note for note in filtered_notes if note[3] and category_filter.lower() in note[3].lower()]
+            st.write("Filtered results:")
+            if filtered_notes:
+                for note in filtered_notes:
+                    st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
+            else:
+                st.write("No notes found matching the filters.")
     
 
     #search_query = st.selectbox("Search notes by summary", options=[""] + index) 
@@ -83,4 +98,3 @@ if mode == "View notes":
     else:
         st.write("No notes found.")
 
-    
