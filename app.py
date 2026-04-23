@@ -2,7 +2,7 @@
 from datetime import datetime
 
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes
 
 
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
@@ -15,6 +15,7 @@ st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
 
 init_db()
+init_del_notes_db()
 
 # complex app, lets speed the development by taking simple steps
 
@@ -81,9 +82,13 @@ if mode == "View notes":
             
             with col1:
                 if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
-                    pass
                     # add this task to a completed taks db using support.py finction(namee TBD)
-                    # delete_note(note[0]) So it won't show in the notes sections.
+                    add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                    # delete_note so it wont be visibel
+                    confirm_dialog(note[0])
+                    
+                    st.success("Task marked as completed and moved to completed tasks!")
+
             with col2:
                 if st.button("Edit", key=f"edit_{note[0]}"):
                     edit_note(note[0])
@@ -99,6 +104,9 @@ if mode == "View notes":
 # new mode aftr a long time
 if mode == "Completed Tasks":
     st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
-    # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them or move them back to notes if they are not completed by mistake. I will work on this later, for now I will just show a message that this feature is under development.
-    # working on support now, did all the thiking here
+    # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them and then move them back to notes if they are not completed by mistake.
+    completed_tasks = get_all_deleted_notes()
+    if completed_tasks:
+        for task in completed_tasks:
+            st.write(f"- [{task[5]}] {task[4]} (Due: {task[2]}, Cat: {task[3]}, ID: {task[0]})")
     
