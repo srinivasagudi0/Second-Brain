@@ -4,6 +4,7 @@ import sqlite3
 from openai import OpenAI
 import streamlit as st
 
+
 db = "notes.db"
 
 # we will be creating multiple dbs, so it is easy; this note db will be used for storing notes, we can have another db for tasks, and so on. This way we can keep things organized and modular.
@@ -168,7 +169,9 @@ def edit_note(note_id):
 
     if note:
         new_summary = st.text_area("Note summary", value=note[0])
-        new_due_date = st.date_input("Due date (YYYY-MM-DD)", value=note[1] or "")
+        
+
+        new_due_date = st.date_input("Due date", value=note[1] if note[1] else None)
         new_cat = st.text_input("Category", value=note[2] or "")
         new_priority = st.slider("Priority", min_value=1, max_value=5, value=note[3] if note[3] is not None else 0)
 
@@ -181,3 +184,4 @@ def edit_note(note_id):
             conn.close()
             st.rerun()
             st.success("Note updated successfully!")
+    
