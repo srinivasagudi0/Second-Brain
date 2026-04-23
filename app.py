@@ -52,7 +52,8 @@ if mode == "View notes":
         category_filter = st.text_input("Filter by category (optional)")
     
 
-    s#earch_query = st.selectbox("Search notes by summary", options=[""] + index) 
+    #search_query = st.selectbox("Search notes by summary", options=[""] + index) 
+    
     '''
     if search_query:
         filtered_notes = [note for note in notes if search_query.lower() in note[1].lower()]
