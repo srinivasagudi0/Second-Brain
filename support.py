@@ -1,6 +1,6 @@
 # all the supporting funcrtions stay here
 
-from datetime import datetime
+import datetime
 import sqlite3
 from openai import OpenAI
 import streamlit as st
@@ -210,7 +210,7 @@ def add_to_deleted_notes(content,due_date, category, summary, priority):
     c = conn.cursor()
     c.execute(
         "INSERT INTO deleted_notes (content, due_date, category, summary, priority, deleted_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (content, due_date, category, summary, priority, datetime.now().isoformat()),
+        (content, due_date, category, summary, priority, datetime.datetime.now().isoformat()),
     )
     conn.commit()
     conn.close()
@@ -231,3 +231,45 @@ def delete_all_notes_delnotes():
     conn.commit()
     conn.close()
 
+
+def group_notes_by_due_status(notes):
+    today = datetime.date.today()
+    due_soon_limit = today + datetime.timedelta(days=7)
+
+    # cool feature did soemthing close to this before but it was a bit buggy, this one should be more robust and handle edge cases better, we will see how it goes.
+    grouped_notes = {
+        "overdue": [],
+        "due_soon": [],
+        "other": []
+    }
+
+    for note in notes:
+        due_date = note[2]
+# idk why sometimes the due date is not in the correct format, so we need to handle that case, if the due date is not in the correct format, we will put it in the "other" category, this way we can still show it to the user and they can fix it if they want to.
+        if not due_date:
+
+            grouped_notes["other"].append(note)
+            continue
+
+        try:
+            
+            parsed_due_date = datetime.date.fromisoformat(due_date)
+        except Exception:
+            
+            grouped_notes["other"].append(note)
+            continue
+
+        if parsed_due_date < today:
+            
+            grouped_notes["overdue"].append(note)
+        elif today <= parsed_due_date <= due_soon_limit:
+            
+            grouped_notes["due_soon"].append(note)
+        else:
+            
+            grouped_notes["other"].append(note)
+
+    grouped_notes["overdue"].sort(key=lambda note: datetime.date.fromisoformat(note[2]))
+    grouped_notes["due_soon"].sort(key=lambda note: datetime.date.fromisoformat(note[2]))
+
+    return grouped_notes

@@ -1,9 +1,11 @@
 # will add content here once tested and works fine
 from datetime import datetime
+import time
 
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, delete_all_notes_delnotes
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, delete_all_notes_delnotes, group_notes_by_due_status
 
+st.set_page_config(page_title="Second Brain", page_icon="🧠", layout="wide")
 
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
 import os
@@ -13,6 +15,18 @@ if "OPENAI_API_KEY" not in os.environ:
 
 st.title("Second Brain- note taker and task manager")
 st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
+
+if "app_ready" not in st.session_state:
+    st.session_state.app_ready = False
+
+if not st.session_state.app_ready:
+    st.write("loading stuff first, wait a sec")
+    with st.spinner("getting things ready..."):
+        init_db()
+        init_del_notes_db()
+        time.sleep(2)
+        st.session_state.app_ready = True
+    st.rerun()
 
 init_db()
 init_del_notes_db()
@@ -27,17 +41,22 @@ mode = st.sidebar.selectbox("Select mode", ["Take a note", "View notes", "Comple
 # dumb i fogot
 if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
-    if st.button("Save Note"):
-        # Here I would send it to support and save it in a db.
+    # Button logic with loading state
+    if "loading" not in st.session_state: st.session_state.loading=False
+    if st.button("Save Note", disabled=st.session_state.loading):
         if note.strip() != "":
-            # here I will call later call AI to summarize, categorize and many more things, but for now lets just save it in a db.
-            save_note_to_db(note)
+            st.session_state.loading=True
+            with st.spinner("organizing your second brain..."):
+                time.sleep(1.2)
+                save_note_to_db(note)
+            st.session_state.loading=False
             st.success("Note saved successfully!")
         else:
             st.warning("Please enter a note before saving.")
 
 if mode == "View notes":
     notes = get_all_notes()
+    grouped_notes = group_notes_by_due_status(notes)
     # writing filtering and searching features here now, this is going to be a bit tricky but i did this type of features before so I am pretty sure I can do it again, I will start with a simple search feature and then move on to more complex filtering features.
     index=[]
 
@@ -77,25 +96,71 @@ if mode == "View notes":
 
 ### now make it editable, flexible.
     if notes:
-        for note in notes:
-            col1, col2, col3 = st.columns([3, 1, 1])
-            
-            with col1:
-                if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})"):
-                    # add this task to a completed taks db using support.py finction(namee TBD)
-                    add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
-                    # delete_note so it wont be visibel
-                    confirm_dialog(note[0])
-                    
-                    st.success("Task marked as completed and moved to completed tasks!")
+        if grouped_notes["overdue"]:
+            st.write("Overdue")
+            for note in grouped_notes["overdue"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
 
-            with col2:
-                if st.button("Edit", key=f"edit_{note[0]}"):
-                    edit_note(note[0])
-            with col3:
-                if st.button("Delete", key=f"delete_{note[0]}"):
-                    confirm_dialog(note[0])
-            st.markdown("---")
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
+
+        if grouped_notes["due_soon"]:
+            st.write("Due Soon (Next 7 Days)")
+            for note in grouped_notes["due_soon"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
+
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
+
+        if grouped_notes["other"]:
+            st.write("All Other Notes")
+            for note in grouped_notes["other"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
+
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
         if st.checkbox("Show raw data"):
             st.write(notes)
     else:
@@ -106,7 +171,8 @@ if mode == "Completed Tasks":
     #st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
     # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them and then move them back to notes if they are not completed by mistake.
     completed_tasks = get_all_deleted_notes()
-    left, right = st.columns([1, 1])
+    left, right = st.columns([4, 5])
+
     with left:
         # maybe addd retricval over here
         pass
@@ -123,4 +189,4 @@ if mode == "Completed Tasks":
     if completed_tasks:
         for task in completed_tasks:
             st.write(f"- [{task[5]}] {task[4]} (Due: {task[2]}, Cat: {task[3]}, ID: {task[0]})")
-    
+    #Add due-soon and overdue sections.
