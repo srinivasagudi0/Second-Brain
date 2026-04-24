@@ -194,4 +194,11 @@ if mode == "Completed Tasks":
 ### mode = TODAY
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
-    pass # forgot to add it crashed the app
+    left, middle, right = st.columns([1, 2, 1])
+    with left:
+        if st.button("Assistant 🧑‍💼"):
+            st.rerun() # let it reload for now 
+    with middle:
+        st.write("THinking...")
+    with right:
+        st.write("THinking...")
