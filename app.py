@@ -37,8 +37,9 @@ init_del_notes_db()
 
 st.sidebar.title("Navigation")
 
-mode = st.sidebar.selectbox("Select mode", ["Take a note", "View notes", "Completed Tasks"]) # ADD MORE MODES HERE LATER
+mode = st.sidebar.selectbox("Select mode", ["TODAY","Take a note", "View notes", "Completed Tasks"]) # ADD MORE MODES HERE LATER
 # dumb i fogot
+
 if mode == "Take a note":
     note = st.text_area("Enter your note here:", height=300)
     # Button logic with loading state
@@ -189,4 +190,7 @@ if mode == "Completed Tasks":
     if completed_tasks:
         for task in completed_tasks:
             st.write(f"- [{task[5]}] {task[4]} (Due: {task[2]}, Cat: {task[3]}, ID: {task[0]})")
-    #Add due-soon and overdue sections.
+    #Added duesoon and overdue 
+### mode = TODAY
+if mode == "TODAY":
+    #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
