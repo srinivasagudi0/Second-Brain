@@ -1,6 +1,6 @@
 # all the supporting funcrtions stay here
 
-import datetime
+from datetime import datetime
 import sqlite3
 from openai import OpenAI
 import streamlit as st
@@ -223,3 +223,11 @@ def get_all_deleted_notes():
     notes = c.fetchall()
     conn.close()
     return notes
+
+def delete_all_notes_delnotes():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("DELETE FROM deleted_notes")
+    conn.commit()
+    conn.close()
+
