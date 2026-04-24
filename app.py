@@ -2,7 +2,7 @@
 from datetime import datetime
 
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, delete_all_notes_delnotes
 
 
 # before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
@@ -103,9 +103,23 @@ if mode == "View notes":
 
 # new mode aftr a long time
 if mode == "Completed Tasks":
-    st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
+    #st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
     # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them and then move them back to notes if they are not completed by mistake.
     completed_tasks = get_all_deleted_notes()
+    left, right = st.columns([1, 1])
+    with left:
+        # maybe addd retricval over here
+        pass
+    
+    with right:
+
+        if st.button("Clear Completed Tasks"):
+            # add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
+            
+            delete_all_notes_delnotes()
+            st.success("All completed tasks have been cleared.")
+            st.rerun()
+
     if completed_tasks:
         for task in completed_tasks:
             st.write(f"- [{task[5]}] {task[4]} (Due: {task[2]}, Cat: {task[3]}, ID: {task[0]})")
