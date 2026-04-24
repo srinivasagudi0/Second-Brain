@@ -273,3 +273,27 @@ def group_notes_by_due_status(notes):
     grouped_notes["due_soon"].sort(key=lambda note: datetime.date.fromisoformat(note[2]))
 
     return grouped_notes
+
+# lets add the assistant feature here, this is going to be a bit tricky but I think we can do it, we will give openai api sosme content about the user's notes and tasks, and then we will ask it to give us some insights or suggestions based on that content, this way we can have a more interactive and helpful assistant feature, this is going to be really cool, I am excited to see how it turns out.
+    
+def assistant_intel(notes, user_input):
+    # call openai
+    import os
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    system_prompt = f"""
+    You are a helpful assistant. Here are the user's notes and tasks:
+    {notes}
+    Please provide some insights or suggestions based on this information.
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt + "Today's date and time is: " + __import__("datetime").datetime.now().isoformat()},
+                {"role": "user", "content": user_input}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f'Error: {str(e)}'
+    
