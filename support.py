@@ -194,11 +194,13 @@ if mode == "Completed Tasks":
 ### mode = TODAY
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
-    st.selectbox("Select view", ["Select Mode", "Assistant"]) # Not going to complicate this.
+    today_view = st.selectbox("Select view", ["Select Mode", "Assistant"]) # Not going to complicate this.
     # why not make assistant feature like an achievement, it should be allowed only if the user has atleast 2 notes, this will encourage the user to use the app more and then they can unlock the assistant feature which will help them with summarization, categorization and all that good stuff, this is going to be a fun feature to implement and use, Also reduces random bla-bla-bla chat.
-    if mode == "Assistant":
-        st.write("This is where the assistant will be, this feature is still under development, but it will be available soon. Stay tuned!")
-
-
+    if today_view == "Assistant":
+        notes = get_all_notes()
+        if len(notes) < 2:
+            st.warning("You need to have at least 2 notes to unlock the assistant feature. Please add more notes to use this feature.")
+        else:
+            st.write("This is where the assistant feature will be implemented. This feature will use AI to summarize, categorize and search your notes. It will also provide insights and suggestions based on your notes. Stay tuned for this exciting feature!")
 
     # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
