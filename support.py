@@ -1,299 +1,204 @@
-# all the supporting funcrtions stay here
+# will add content here once tested and works fine
+from datetime import datetime
+import time
 
-import datetime
-import sqlite3
-from openai import OpenAI
 import streamlit as st
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, delete_all_notes_delnotes, group_notes_by_due_status
 
+st.set_page_config(page_title="Second Brain", page_icon="🧠", layout="wide")
 
-db = "notes.db"
+# before the app even starts we need to check if openai key is set, if not we will show a warning and exit the app.
+import os
+if "OPENAI_API_KEY" not in os.environ:
+    st.warning("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable to use this app.")
+    st.stop()
 
-# we will be creating multiple dbs, so it is easy; this note db will be used for storing notes, we can have another db for tasks, and so on. This way we can keep things organized and modular.
-def init_db():
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS notes
-                 (
-              id INTEGER PRIMARY KEY AUTOINCREMENT, 
-              content TEXT,
-              due_date TEXT,
-              category TEXT,
-              summary TEXT,
-              priority INTEGER
-              )''')
-    conn.commit()
-    conn.close()
+st.title("Second Brain- note taker and task manager")
+st.write("A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.")
 
-def get_gpt_response(prompt):
-    import os
+if "app_ready" not in st.session_state:
+    st.session_state.app_ready = False
 
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+if not st.session_state.app_ready:
+    st.write("loading stuff first, wait a sec")
+    with st.spinner("getting things ready..."):
+        init_db()
+        init_del_notes_db()
+        time.sleep(2)
+        st.session_state.app_ready = True
+    st.rerun()
 
-    system_prompt = """
-You are a helpful assistant that helps users manage notes, tasks, and other information.
-Return ONLY strict JSON with this exact structure and valid JSON syntax:
-{
-  "content": "exact content of the note, without extra formatting",
-  "due_date": "YYYY-MM-DD or null",
-  "category": "category name or null",
-  "summary": "brief summary of the note",
-  "priority": 1
-}
-Rules:
-- Output JSON only. No markdown, no explanations.
-- "priority" must be an integer 1 to 5, or null.
-- If unknown, use null.
--  the summary should be a concise one-line TODO summary, ideally starting with a verb (e.g. "Buy groceries", "Call Alice", "Finish report").
-"""
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt + "Today's date and time is: " + __import__("datetime").datetime.now().isoformat()},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f'{{"error":"{str(e)}"}}'
+init_db()
+init_del_notes_db()
 
-# Backwards-compatible alias (common misspelling in app code / imports).
-def get_gpt_ressponse(prompt):
-    return get_gpt_response(prompt)
+# complex app, lets speed the development by taking simple steps
 
-def save_note_to_db(note):
-    import json
+# lets make a simple note taking feature.
 
-    content = None
-    due_date = None
-    category = None
-    summary = None
-    priority = None
-    original_text = None
+st.sidebar.title("Navigation")
 
-    # Accept a dict-like note, a JSON string from GPT, or raw freeform text.
-    if isinstance(note, dict):
-        parsed = note
-    elif isinstance(note, str):
-        note_str = note.strip()
-        original_text = note_str
-        parsed = None
-        if note_str.startswith("{") and note_str.endswith("}"):
-            try:
-                parsed = json.loads(note_str)
-            except Exception:
-                parsed = None
+mode = st.sidebar.selectbox("Select mode", ["TODAY","Take a note", "View notes", "Completed Tasks"]) # ADD MORE MODES HERE LATER
+# dumb i fogot
 
-        # If it's not valid JSON, enrich it via GPT (best-effort).
-        if parsed is None and note_str:
-            try:
-                parsed = json.loads(get_gpt_ressponse(note_str))
-            except Exception:
-                parsed = None
+if mode == "Take a note":
+    note = st.text_area("Enter your note here:", height=300)
+    # Button logic with loading state
+    if "loading" not in st.session_state: st.session_state.loading=False
+    if st.button("Save Note", disabled=st.session_state.loading):
+        if note.strip() != "":
+            st.session_state.loading=True
+            with st.spinner("organizing your second brain..."):
+                time.sleep(1.2)
+                save_note_to_db(note)
+            st.session_state.loading=False
+            st.success("Note saved successfully!")
+        else:
+            st.warning("Please enter a note before saving.")
 
-        if parsed is None:
-            parsed = {"content": note_str}
-    else:
-        original_text = str(note)
-        parsed = {"content": original_text}
-
-    content = parsed.get("content")
-    due_date = parsed.get("due_date")
-    category = parsed.get("category")
-    summary = parsed.get("summary")
-    priority = parsed.get("priority")
-
-    # If GPT failed (e.g. {"error": ...}) or content is missing, fall back to the original text.
-    if not content and original_text:
-        content = original_text
-
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO notes (content, due_date, category, summary, priority) VALUES (?, ?, ?, ?, ?)",
-        (content, due_date, category, summary, priority),
-    )
-    conn.commit()
-    conn.close()
-
-def get_all_notes():
-   # update to get stuff from the new db structure
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("SELECT id, content, due_date, category, summary, priority FROM notes")
-    notes = c.fetchall()
-    conn.close()
-    return notes
-
-# delete th note by id
-def delete_note(note_id):
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("DELETE FROM notes WHERE id=?", (note_id,))
-    conn.commit()
-    conn.close()
-
-# add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
-@st.dialog("Confirm Action")
-def confirm_dialog(note_id):
-    st.write(f"Are you sure you want to delete the note?")
-    
-    if st.button("Yes"):
-        # Save data to session state if needed outside the dialog
-        st.session_state.deleted_item = note_id
-        # Use st.rerun() to close the dialog and refresh the app
-        delete_note(note_id)
-        st.rerun()
-    if st.button("No"):
-        st.rerun()
-
-# edit feature is currently not implemented yet, so this one will work as a edit function
-@st.dialog("Edit Note")
-def edit_note(note_id):
-    import streamlit as st
-
-
-    #for now will only be able to edit the content, we will get over this soon, we are getting somewhere
-    # working to able to edi the category, due date and priority now.
-    #with st.dialog("Edit Note"):
-    st.write(f"Edit the note with id: {note_id}")
-
-    # shoudl be good now since I took of the note
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("SELECT summary, due_date, category, priority FROM notes WHERE id=?", (note_id,))
-    note = c.fetchone()
-    conn.close()
-
-    # should be patched and maybe perfect for now, if this works we can scale it by a lot.
-
-    if note:
-        new_summary = st.text_area("Note summary", value=note[0])
-        
-
-        new_due_date = st.date_input("Due date", value=note[1] if note[1] else None)
-        new_cat = st.text_input("Category", value=note[2] or "")
-        new_priority = st.slider("Priority", min_value=1, max_value=5, value=note[3] if note[3] is not None else 0)
-
-        if st.button("Save"):
-            conn = sqlite3.connect(db)
-            c = conn.cursor()
-            # changed it from content to summary.
-            c.execute("UPDATE notes SET summary=?,due_date=?, category=?, priority=? WHERE id=?", (new_summary, new_due_date, new_cat, new_priority, note_id))
-            conn.commit()
-            conn.close()
-            st.rerun()
-            st.success("Note updated successfully!")
-    
-
-# for mode delete notes mode
-def init_del_notes_db():
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS deleted_notes
-                 (
-              id INTEGER PRIMARY KEY AUTOINCREMENT, 
-              content TEXT,
-              due_date TEXT,
-              category TEXT,
-              summary TEXT,
-              priority INTEGER,
-              deleted_at TEXT
-              )''')
-    conn.commit()
-    conn.close()
-
-# add a note to the deleted notes db, this is for the delete mode, we will be able to see the deleted notes and restore them if needed.
-def add_to_deleted_notes(content,due_date, category, summary, priority):
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO deleted_notes (content, due_date, category, summary, priority, deleted_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (content, due_date, category, summary, priority, datetime.datetime.now().isoformat()),
-    )
-    conn.commit()
-    conn.close()
-    
-# get all deleted notes, this is for the delete mode, we will be able to see the deleted notes and restore them if needed.
-def get_all_deleted_notes():
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("SELECT id, content, due_date, category, summary, priority, deleted_at FROM deleted_notes")
-    notes = c.fetchall()
-    conn.close()
-    return notes
-
-def delete_all_notes_delnotes():
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    c.execute("DELETE FROM deleted_notes")
-    conn.commit()
-    conn.close()
-
-
-def group_notes_by_due_status(notes):
-    today = datetime.date.today()
-    due_soon_limit = today + datetime.timedelta(days=7)
-
-    # cool feature did soemthing close to this before but it was a bit buggy, this one should be more robust and handle edge cases better, we will see how it goes.
-    grouped_notes = {
-        "overdue": [],
-        "due_soon": [],
-        "other": []
-    }
+if mode == "View notes":
+    notes = get_all_notes()
+    grouped_notes = group_notes_by_due_status(notes)
+    # writing filtering and searching features here now, this is going to be a bit tricky but i did this type of features before so I am pretty sure I can do it again, I will start with a simple search feature and then move on to more complex filtering features.
+    index=[]
 
     for note in notes:
-        due_date = note[2]
-# idk why sometimes the due date is not in the correct format, so we need to handle that case, if the due date is not in the correct format, we will put it in the "other" category, this way we can still show it to the user and they can fix it if they want to.
-        if not due_date:
+        index.append(note[1])
 
-            grouped_notes["other"].append(note)
-            continue
+    # search and everything related to it is here 🔍
 
-        try:
-            
-            parsed_due_date = datetime.date.fromisoformat(due_date)
-        except Exception:
-            
-            grouped_notes["other"].append(note)
-            continue
-
-        if parsed_due_date < today:
-            
-            grouped_notes["overdue"].append(note)
-        elif today <= parsed_due_date <= due_soon_limit:
-            
-            grouped_notes["due_soon"].append(note)
+    corner, left, middle,right = st.columns([1, 2, 2, 1])
+    with corner:
+        st.slider('Priority Filter', min_value=1, max_value=5, value=3, key='priority_filter')
+    with left:
+        search_query = st.selectbox("Search notes by summary", options=[""] + index) 
+    with middle:
+        due_date_filter = st.date_input("Filter by due date (optional)", value=None)
+    with right:
+        category_filter = st.text_input("category (optional)")
+    
+    if st.button("Apply Filters"):
+        filtered_notes = notes
+        if search_query:
+            filtered_notes = [note for note in filtered_notes if search_query.lower() in note[1].lower()]
+        if due_date_filter:
+            filtered_notes = [note for note in filtered_notes if note[2] and datetime.strptime(note[2], "%Y-%m-%d").date() == due_date_filter]
+        if category_filter:
+            filtered_notes = [note for note in filtered_notes if note[3] and category_filter.lower() in note[3].lower()]
+        st.write("Filtered results:")
+        if filtered_notes:
+            for note in filtered_notes:
+                st.caption(f'**{note[4]} is due on {note[2]} and is in category {note[3]} with a priority of {note[5]}**')
         else:
+            st.write("No notes found matching the filters.")
+    
+
+    #cooldown for easier brain processing
+        st.markdown("---")
+
+### now make it editable, flexible.
+    if notes:
+        if grouped_notes["overdue"]:
+            st.write("Overdue")
+            for note in grouped_notes["overdue"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
+
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
+
+        if grouped_notes["due_soon"]:
+            st.write("Due Soon (Next 7 Days)")
+            for note in grouped_notes["due_soon"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
+
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
+
+        if grouped_notes["other"]:
+            st.write("All Other Notes")
+            for note in grouped_notes["other"]:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # add this task to a completed taks db using support.py finction(namee TBD)
+                        add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
+                        # delete_note so it wont be visibel
+                        confirm_dialog(note[0])
+                        
+                        st.success("Task marked as completed and moved to completed tasks!")
+
+                with col2:
+                    if st.button("Edit", key=f"edit_{note[0]}"):
+                        edit_note(note[0])
+                with col3:
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        confirm_dialog(note[0])
+                st.markdown("---")
+        if st.checkbox("Show raw data"):
+            st.write(notes)
+    else:
+        st.write("No notes found.")
+
+# new mode aftr a long time
+if mode == "Completed Tasks":
+    #st.write("This is where completed tasks will be shown. This feature is still under development, but it will be available soon. Stay tuned!")
+    # use support.py to help retrive all the tasks from the completed tasks db and show them here, maybe add a feature to delete them and then move them back to notes if they are not completed by mistake.
+    completed_tasks = get_all_deleted_notes()
+    left, right = st.columns([4, 5])
+
+    with left:
+        # maybe addd retricval over here
+        pass
+    
+    with right:
+
+        if st.button("Clear Completed Tasks"):
+            # add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
             
-            grouped_notes["other"].append(note)
+            delete_all_notes_delnotes()
+            st.success("All completed tasks have been cleared.")
+            st.rerun()
 
-    grouped_notes["overdue"].sort(key=lambda note: datetime.date.fromisoformat(note[2]))
-    grouped_notes["due_soon"].sort(key=lambda note: datetime.date.fromisoformat(note[2]))
+    if completed_tasks:
+        for task in completed_tasks:
+            st.write(f"- [{task[5]}] {task[4]} (Due: {task[2]}, Cat: {task[3]}, ID: {task[0]})")
+    #Added duesoon and overdue 
+### mode = TODAY
+if mode == "TODAY":
+    #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
+    st.selectbox("Select view", ["Select Mode", "Assistant"]) # Not going to complicate this.
+    # why not make assistant feature like an achievement, it should be allowed only if the user has atleast 2 notes, this will encourage the user to use the app more and then they can unlock the assistant feature which will help them with summarization, categorization and all that good stuff, this is going to be a fun feature to implement and use, Also reduces random bla-bla-bla chat.
+    if mode == "Assistant":
+        st.write("This is where the assistant will be, this feature is still under development, but it will be available soon. Stay tuned!")
 
-    return grouped_notes
 
-# lets add the assistant feature here, this is going to be a bit tricky but I think we can do it, we will give openai api sosme content about the user's notes and tasks, and then we will ask it to give us some insights or suggestions based on that content, this way we can have a more interactive and helpful assistant feature, this is going to be really cool, I am excited to see how it turns out.
-    
-def assistant_intel(notes, user_input):
-    # call openai
-    import os
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    system_prompt = f"""
-    You are a helpful assistant. Here are the user's notes and tasks:
-    {notes}
-    Please provide some insights or suggestions based on this information.
-    """
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt + "Today's date and time is: " + __import__("datetime").datetime.now().isoformat()},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f'Error: {str(e)}'
-    
+
+    # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
