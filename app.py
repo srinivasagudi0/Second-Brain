@@ -194,7 +194,7 @@ if mode == "Completed Tasks":
 ### mode = TODAY
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
-    today_view = st.selectbox("Select view", ["Select Mode", 'Today', "Assistant"]) # Not going to complicate this.
+    today_view = st.selectbox("Select view", ["Select Mode", 'Today', "Assistant", "Quick Stats"]) # Not going to complicate this.
     # Overdue will be shown in red and will be at the top no matter what the mode is
     #fetch overdue
     notes = get_all_notes()
@@ -256,6 +256,21 @@ if mode == "TODAY":
                     # the response is all the way at the end of the screen, how to 
                     #st.empty() though this would work, guess why i commented  it out!.
                     response_box.write(st.session_state.assistant_answer)
+
+    if today_view == "Quick Stats":
+        # show stats about how many notes are there, how man are overdue and also how many are completed.
+        notes = get_all_notes()
+        grouped_notes = group_notes_by_due_status(notes)
+        total_notes = len(notes)
+        overdue_notes = len(grouped_notes["overdue"])
+        due_soon_notes = len(grouped_notes["due_soon"])
+        other_notes = len(grouped_notes["other"])
+        completed_notes = len(get_all_deleted_notes())
+        st.write(f"Total Notes: {total_notes}")
+        st.write(f"Overdue Notes: {overdue_notes}")
+        st.write(f"Due Soon Notes: {due_soon_notes}")
+        st.write(f"Other Notes: {other_notes}")
+        st.write(f"Completed Notes: {completed_notes}")
 
     # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
         
