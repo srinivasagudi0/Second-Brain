@@ -290,7 +290,7 @@ def ask_assistant(notes, user_input):
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt + "Today's date and time is: " + datetime.datetime.now().isoformat()},
-                {"role": "user", "content": user_input}
+                {"role": "user", "content": str(user_input)}
             ]
         )
         return response.choices[0].message.content
