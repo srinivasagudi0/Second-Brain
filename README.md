@@ -94,6 +94,12 @@ You can restore it if you clicked too confidently.
 
 ---
 
+## Struggles I Faced
+
+While building this project, I faced a few challenges that took time to fix. I added more features than planned at first (like Today view, stats, assistant, UI changes), which caused me to go back and change things multiple times. Handling Streamlit state and reruns was tricky, especially with buttons, dialogs, and switching views. I also spent time fixing CRUD logic (edit, delete, update), where small mistakes caused bugs. There were many small errors during development, so I had to debug and test a lot to make the app stable. Setting up the database and saving/loading data also needed some work. I also worked on making the AI features more reliable (API key, response handling, fallbacks). In the end, most of my time went into debugging, fixing issues, and improving the app rather than just adding features. Hope you understand!
+
+---
+
 ## Important
 
 ⚠️ Requires an `OPENAI_API_KEY` or the app will not run.
