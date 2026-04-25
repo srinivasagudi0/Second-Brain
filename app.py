@@ -194,11 +194,30 @@ if mode == "Completed Tasks":
 ### mode = TODAY
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
-    left, middle, right = st.columns([1, 2, 1])
-    with left:
-        if st.button("Assistant 🧑‍💼"):
-            st.rerun() # let it reload for now 
-    with middle:
-        st.write("THinking...")
-    with right:
-        st.write("THinking...")
+    today_view = st.selectbox("Select view", ["Select Mode", "Assistant"]) # Not going to complicate this.
+    # why not make assistant feature like an achievement, it should be allowed only if the user has atleast 2 notes, this will encourage the user to use the app more and then they can unlock the assistant feature which will help them with summarization, categorization and all that good stuff, this is going to be a fun feature to implement and use, Also reduces random bla-bla-bla chat.
+    if today_view == "Assistant":
+        notes = get_all_notes()
+        if len(notes) < 2:
+            st.warning("Not so Fast, you need to have at least 2 notes to unlock the assistant feature. Please add more notes to use this feature.")
+        else:
+            left, right = st.columns([4, 1])
+
+            with left:
+                st.text_input("Ask about your notes or tasks", placeholder="e.g. What are my overdue tasks? or Summarize my notes for me", key="assistant_input")
+            with right:
+                # leveling it 
+                st.write(" ")
+                st.write(" ")
+                if st.button("Ask Assistant", key="ask_assistant"):
+                    st.write("Assistant is thinking...")
+                    # add a spinner while the assistant is thinking.
+                    with st.spinner("Assistant is thinking..."):
+                        time.sleep(2)
+                        # add a function in support.py that takes the user input and the notes and then returns the answer, this function will use openai api to get the answer, this is going to be a fun feature to implement and use, also reduces random bla-bla-bla chat.
+                        from support import ask_assistant
+                        answer = ask_assistant(st.session_state.assistant_input, notes)
+                        st.write("Assistant says:")
+                        st.write(answer)
+
+    # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
