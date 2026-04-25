@@ -17,10 +17,20 @@ def init_db():
               id INTEGER PRIMARY KEY AUTOINCREMENT, 
               content TEXT,
               due_date TEXT,
+              due_time TEXT,
               category TEXT,
               summary TEXT,
-              priority INTEGER
+              priority INTEGER,
+              type TEXT,
+              tags TEXT,
+              confidence REAL,
+              needs_clarification INTEGER
               )''')
+    for column in ["due_time TEXT", "type TEXT", "tags TEXT", "confidence REAL", "needs_clarification INTEGER"]:
+        try:
+            c.execute(f"ALTER TABLE notes ADD COLUMN {column}")
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     conn.close()
 
@@ -34,15 +44,21 @@ You are a helpful assistant that helps users manage notes, tasks, and other info
 Return ONLY strict JSON with this exact structure and valid JSON syntax:
 {
   "content": "exact content of the note, without extra formatting",
-  "due_date": "YYYY-MM-DD or null",
-  "category": "category name or null",
   "summary": "brief summary of the note",
-  "priority": 1
+  "type": "task | note | reminder | meeting",
+  "due_date": "YYYY-MM-DD or null",
+  "due_time": "HH:MM or null",
+  "category": "category name or null",
+  "priority": 1,
+  "tags": [],
+  "confidence": 0.8,
+  "needs_clarification": false
 }
 Rules:
 - Output JSON only. No markdown, no explanations.
 - "priority" must be an integer 1 to 5, or null.
 - If unknown, use null.
+- Use false for "needs_clarification" unless required details are missing.
 -  the summary should be a concise one-line TODO summary, ideally starting with a verb (e.g. "Buy groceries", "Call Alice", "Finish report").
 """
     try:
@@ -100,9 +116,14 @@ def save_note_to_db(note):
 
     content = parsed.get("content")
     due_date = parsed.get("due_date")
+    due_time = parsed.get("due_time")
     category = parsed.get("category")
     summary = parsed.get("summary")
     priority = parsed.get("priority")
+    note_type = parsed.get("type")
+    tags = json.dumps(parsed.get("tags", []))
+    confidence = parsed.get("confidence")
+    needs_clarification = parsed.get("needs_clarification")
 
     # If GPT failed (e.g. {"error": ...}) or content is missing, fall back to the original text.
     if not content and original_text:
@@ -111,8 +132,8 @@ def save_note_to_db(note):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     c.execute(
-        "INSERT INTO notes (content, due_date, category, summary, priority) VALUES (?, ?, ?, ?, ?)",
-        (content, due_date, category, summary, priority),
+        "INSERT INTO notes (content, due_date, due_time, category, summary, priority, type, tags, confidence, needs_clarification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (content, due_date, due_time, category, summary, priority, note_type, tags, confidence, needs_clarification),
     )
     conn.commit()
     conn.close()
@@ -121,7 +142,7 @@ def get_all_notes():
    # update to get stuff from the new db structure
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    c.execute("SELECT id, content, due_date, category, summary, priority FROM notes")
+    c.execute("SELECT id, content, due_date, category, summary, priority, type, due_time, tags, confidence, needs_clarification FROM notes")
     notes = c.fetchall()
     conn.close()
     return notes
@@ -174,7 +195,7 @@ def edit_note(note_id):
 
         new_due_date = st.date_input("Due date", value=note[1] if note[1] else None)
         new_cat = st.text_input("Category", value=note[2] or "")
-        new_priority = st.slider("Priority", min_value=1, max_value=5, value=note[3] if note[3] is not None else 0)
+        new_priority = st.slider("Priority", min_value=1, max_value=5, value=note[3] if note[3] is not None else 1)
 
         if st.button("Save"):
             conn = sqlite3.connect(db)
@@ -231,6 +252,13 @@ def delete_all_notes_delnotes():
     conn.commit()
     conn.close()
 
+def delete_completed_note(note_id):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("DELETE FROM deleted_notes WHERE id=?", (note_id,))
+    conn.commit()
+    conn.close()
+
 
 def group_notes_by_due_status(notes):
     today = datetime.date.today()
@@ -284,6 +312,7 @@ def ask_assistant(notes, user_input):
     You are a helpful assistant. Here are the user's notes and tasks:
     {notes[0:5]}
     Please provide some insights or suggestions based on this information.
+    Cite notes like in the note id .. the task was 'whatver' [note id: 123] and so on, this way we can keep track of which note you are talking about.
     """
     try:
         response = client.chat.completions.create(
@@ -298,3 +327,21 @@ def ask_assistant(notes, user_input):
         st.exception(e)
         return f"Failed to get assistant response: {e}"
     
+# delete task by id but no confirmation, this is for the delete mode, I will be ussing this for fixing the bug 
+def delete_note_no_confirm(note_id):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("DELETE FROM notes WHERE id=?", (note_id,))
+    conn.commit()
+    conn.close()
+
+@st.dialog("Confirm Delete All Notes")
+def confirm_delete_all():
+    st.write("Are you sure you want to delete all notes? This action cannot be undone.")
+    
+    if st.button("Yes, delete all notes"):
+        delete_all_notes_delnotes()
+        st.success("All notes have been deleted.")
+        st.rerun()
+    if st.button("No, keep my notes"):
+        st.rerun()

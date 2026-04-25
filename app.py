@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 
 import streamlit as st
-from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, delete_all_notes_delnotes, group_notes_by_due_status
+from support import init_db, save_note_to_db, get_all_notes, confirm_dialog, edit_note, init_del_notes_db, add_to_deleted_notes, get_all_deleted_notes, confirm_delete_all, delete_completed_note, group_notes_by_due_status, delete_note_no_confirm
 
 st.set_page_config(page_title="Second Brain", page_icon="🧠", layout="wide")
 
@@ -104,12 +104,14 @@ if mode == "View notes":
                 
                 with col1:
                     if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # delete_note so it wont be visibels
+                        delete_note_no_confirm(note[0])
                         # add this task to a completed taks db using support.py finction(namee TBD)
                         add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
-                        # delete_note so it wont be visibel
-                        confirm_dialog(note[0])
+                        
                         
                         st.success("Task marked as completed and moved to completed tasks!")
+                        st.rerun()
 
                 with col2:
                     if st.button("Edit", key=f"edit_{note[0]}"):
@@ -126,12 +128,14 @@ if mode == "View notes":
                 
                 with col1:
                     if st.checkbox(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})", key=f"check_{note[0]}"):
+                        # delete_note so it wont be visibels
+                        delete_note_no_confirm(note[0])
                         # add this task to a completed taks db using support.py finction(namee TBD)
                         add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
-                        # delete_note so it wont be visibel
-                        confirm_dialog(note[0])
+                       
                         
                         st.success("Task marked as completed and moved to completed tasks!")
+                        st.rerun()
 
                 with col2:
                     if st.button("Edit", key=f"edit_{note[0]}"):
@@ -151,9 +155,10 @@ if mode == "View notes":
                         # add this task to a completed taks db using support.py finction(namee TBD)
                         add_to_deleted_notes(note[1], note[2], note[3], note[4], note[5])
                         # delete_note so it wont be visibel
-                        confirm_dialog(note[0])
+                        delete_note_no_confirm(note[0])
                         
                         st.success("Task marked as completed and moved to completed tasks!")
+                        st.rerun()
 
                 with col2:
                     if st.button("Edit", key=f"edit_{note[0]}"):
@@ -163,7 +168,8 @@ if mode == "View notes":
                         confirm_dialog(note[0])
                 st.markdown("---")
         if st.checkbox("Show raw data"):
-            st.write(notes)
+            raw_fields = ["id", "content", "due_date", "category", "summary", "priority", "type", "due_time", "tags", "confidence", "needs_clarification"]
+            st.write([dict(zip(raw_fields, note)) for note in notes])
     else:
         st.write("No notes found.")
 
@@ -176,16 +182,31 @@ if mode == "Completed Tasks":
 
     with left:
         # maybe addd retricval over here
-        pass
+        if completed_tasks:
+            task_options = {f"{task[4]} (ID: {task[0]})": task for task in completed_tasks}
+            selected_task = st.selectbox("Retrieve completed task", list(task_options.keys()))
+
+            if st.button("Retrieve Task"):
+                task = task_options[selected_task]
+                save_note_to_db({
+                    "content": task[1],
+                    "due_date": task[2],
+                    "category": task[3],
+                    "summary": task[4],
+                    "priority": task[5],
+                })
+                delete_completed_note(task[0])
+                st.success("Task moved back to notes.")
+                st.rerun()
+        else:
+            st.write("")
     
     with right:
 
         if st.button("Clear Completed Tasks"):
             # add a safety check before deleting all notes, this is a dangerous operation, so we need to make sure that the user really wants to do it.
             
-            delete_all_notes_delnotes()
-            st.success("All completed tasks have been cleared.")
-            st.rerun()
+            confirm_delete_all()
 
     if completed_tasks:
         for task in completed_tasks:
@@ -193,6 +214,7 @@ if mode == "Completed Tasks":
     #Added duesoon and overdue 
 ### mode = TODAY
 if mode == "TODAY":
+    st.write(f"## Welcome today is {datetime.now().strftime('%Y-%m-%d')}")
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
     today_view = st.selectbox("Select view", ["Select Mode", 'Today', "Assistant", "Quick Stats"]) # Not going to complicate this.
     # Overdue will be shown in red and will be at the top no matter what the mode is
@@ -249,7 +271,7 @@ if mode == "TODAY":
                         time.sleep(2)
                         # add a function in support.py that takes the user input and the notes and then returns the answer, this function will use openai api to get the answer, this is going to be a fun feature to implement and use, also reduces random bla-bla-bla chat.
                         from support import ask_assistant
-                        st.session_state.assistant_answer = ask_assistant(st.session_state.assistant_input, notes)
+                        st.session_state.assistant_answer = ask_assistant(notes,st.session_state.assistant_input)
 
                 if st.session_state.assistant_answer:
                     st.write("Assistant says:")
@@ -266,11 +288,12 @@ if mode == "TODAY":
         due_soon_notes = len(grouped_notes["due_soon"])
         other_notes = len(grouped_notes["other"])
         completed_notes = len(get_all_deleted_notes())
-        st.write(f"Total Notes: {total_notes}")
-        st.write(f"Overdue Notes: {overdue_notes}")
-        st.write(f"Due Soon Notes: {due_soon_notes}")
-        st.write(f"Other Notes: {other_notes}")
-        st.write(f"Completed Notes: {completed_notes}")
+        # make it look more dashboardy
+        st.metric("Total Notes", total_notes)
+        st.metric("Overdue Notes", overdue_notes)
+        st.metric("Due Soon Notes", due_soon_notes)
+        st.metric("Other Notes", other_notes)
+        st.metric("Completed Notes", completed_notes)
 
     # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
         
