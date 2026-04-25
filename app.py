@@ -205,6 +205,9 @@ if mode == "TODAY":
 
             with left:
                 st.text_input("Ask about your notes or tasks", placeholder="e.g. What are my overdue tasks? or Summarize my notes for me", key="assistant_input")
+                response_box = st.empty()
+                if "assistant_answer" not in st.session_state: st.session_state.assistant_answer=""
+
             with right:
                 # leveling it 
                 st.write(" ")
@@ -216,8 +219,12 @@ if mode == "TODAY":
                         time.sleep(2)
                         # add a function in support.py that takes the user input and the notes and then returns the answer, this function will use openai api to get the answer, this is going to be a fun feature to implement and use, also reduces random bla-bla-bla chat.
                         from support import ask_assistant
-                        answer = ask_assistant(st.session_state.assistant_input, notes)
-                        st.write("Assistant says:")
-                        st.write(answer)
+                        st.session_state.assistant_answer = ask_assistant(st.session_state.assistant_input, notes)
+
+                if st.session_state.assistant_answer:
+                    st.write("Assistant says:")
+                    # the response is all the way at the end of the screen, how to 
+                    #st.empty() though this would work, guess why i commented  it out!.
+                    response_box.write(st.session_state.assistant_answer)
 
     # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
