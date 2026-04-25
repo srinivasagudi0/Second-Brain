@@ -195,6 +195,17 @@ if mode == "Completed Tasks":
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
     today_view = st.selectbox("Select view", ["Select Mode", 'Today', "Assistant"]) # Not going to complicate this.
+    # Overdue will be shown in red and will be at the top no matter what the mode is
+    #fetch overdue
+    notes = get_all_notes()
+    grouped_notes = group_notes_by_due_status(notes)
+    if grouped_notes["overdue"]:
+        st.write("Overdue Tasks")
+        for note in grouped_notes["overdue"]:
+            st.error(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+        st.markdown("---")
+    
+    
     # why not make assistant feature like an achievement, it should be allowed only if the user has atleast 2 notes, this will encourage the user to use the app more and then they can unlock the assistant feature which will help them with summarization, categorization and all that good stuff, this is going to be a fun feature to implement and use, Also reduces random bla-bla-bla chat.
     if today_view == "Today":
         # todays task and that stuff
