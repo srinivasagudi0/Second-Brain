@@ -194,9 +194,28 @@ if mode == "Completed Tasks":
 ### mode = TODAY
 if mode == "TODAY":
     #THIS one will show if there any tasks due and has like a dev dashboard vibe, maybe add some fixed widgets, this is going to be like a quick overview of what needs to be done 
-    today_view = st.selectbox("Select view", ["Select Mode", "Assistant"]) # Not going to complicate this.
+    today_view = st.selectbox("Select view", ["Select Mode", 'Today', "Assistant"]) # Not going to complicate this.
     # why not make assistant feature like an achievement, it should be allowed only if the user has atleast 2 notes, this will encourage the user to use the app more and then they can unlock the assistant feature which will help them with summarization, categorization and all that good stuff, this is going to be a fun feature to implement and use, Also reduces random bla-bla-bla chat.
+    if today_view == "Today":
+        # todays task and that stuff
+        notes = get_all_notes()
+        grouped_notes = group_notes_by_due_status(notes)
+        today=datetime.now().date()
+        # took a lot of time time just to think about htis line
+        todays_tasks = [
+            note for note in grouped_notes["due_soon"]
+            if note[2] and datetime.strptime(note[2], "%Y-%m-%d").date() == today
+        ]
+
+        st.write("Today's tasks")
+
+        if todays_tasks:
+            for note in todays_tasks:
+                st.write(f"- [{note[5]}] {note[4]} (Due: {note[2]}, Cat: {note[3]}, ID: {note[0]})")
+        else:
+            st.write("No tasks due today.")
     if today_view == "Assistant":
+        # this is chatbot 
         notes = get_all_notes()
         if len(notes) < 2:
             st.warning("Not so Fast, you need to have at least 2 notes to unlock the assistant feature. Please add more notes to use this feature.")
@@ -228,3 +247,4 @@ if mode == "TODAY":
                     response_box.write(st.session_state.assistant_answer)
 
     # thought of making buttons but that is harder so sticking to the selectbox as it is easier to implement and will do the job for now, maybe add buttons later if I have time.
+        
