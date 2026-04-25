@@ -1,56 +1,99 @@
-# Second-Brain
-A smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI. Also works best in CLI(you get an api) and UI(try my Streamlit app).
+# Second Brain
 
-# NEXT Feature(Planning here):
-Add a basic filter that uses both text searchup and category, not easy but focusing n filterablity(idk if the word is real) now.
-also instead of a selectbox there will a be a sidebar (no promises)
-Also add soerting feature in mode 'view notes'
-Will add more modes
+**AI-powered note taker + task manager**  
+Type chaos. Get structured tasks.
 
+Second Brain turns messy notes into organized task entries with:
 
+- **Summary**
+- **Due date**
+- **Category**
+- **Priority**
+- **Type**
+- **Tags**
 
-# Trying to Achieve
+Built for people with too much on their plate.
 
-The Project: "The AI-Powered Second Brain"
-Build a smart note-taking and task-manager app that doesn't just store text, but categorizes, summarizes, and searches your data using AI.
+---
 
-1. The Stack (All Free except openai)
-Frontend: Streamlit.
+## Tech Stack
 
-Logic: Python.
+- Python  
+- Streamlit  
+- SQLite  
+- OpenAI API  
 
-Database: SQLite (for local dev)
+> SQLite = simple local storage that minds its own business.
 
-Note: Since SQLite disappears on Streamlit Cloud
+---
 
-AI API: Google Gemini 2.5 Flash (via Google AI Studio).
+## Features
 
-Cost: $0 (up to 500 requests/day).
+- Add messy notes  
+- AI organizes them  
+- Save tasks to SQLite  
+- View:
+  - Overdue tasks
+  - Due soon
+  - Due today
+- Completed tasks page  
+- Edit, delete, restore tasks  
+- Ask an assistant about your notes  
+- Quick stats dashboard  
 
-Why: It can summarize your notes, extract "To-Do" items from a long paragraph of text, and even "chat" with your database.
+---
 
-2. Features to Build
-Smart Entry: You type a messy note like "Need to buy milk, also don't forget the meeting with Sarah at 4 PM to discuss the API project."
+## Pages
 
-AI Processing: The Python backend sends this to Gemini. Gemini returns a JSON object:
+## TODAY
 
-task: "Buy milk"
+Dashboard includes:
 
-meeting: "Meeting with Sarah, 4 PM"
+- Overdue tasks  
+- Today's tasks  
+- Stats  
+- Assistant  
 
-topic: "API Project"
+---
 
-Database Integration: Your app automatically saves these into your tasks and notes tables.
+## Take a Note
 
-Auth Integration: Use Streamlit Authenticator (a simple library) to create a login page so your "Brain" stays private.
+Type something messy like:
 
-3. How to keep the DB "Permanent"
-If you really want to stick to SQLite, you can use a clever trick: GitHub Persistence.
+```text
+finish math homework tomorrow priority high
+```
 
-Your app runs on Streamlit.
+AI cleans it up into structured tasks.
 
-When a user saves data, the app updates the database.db file.
+---
 
-You use the GitPython library to automatically commit and push that .db file back to your private GitHub repo.
+## View Notes
 
-Cost: $0. Permanence: Infinite.
+Tasks are grouped into:
+
+- Overdue  
+- Due Soon  
+- Everything Else  
+
+Actions available:
+
+- Edit  
+- Delete  
+- Complete  
+
+---
+
+## Completed Tasks
+
+See finished items.
+
+Accidentally marked something complete?
+
+You can restore it if you clicked too confidently.
+
+---
+
+## Important
+
+⚠️ Requires an `OPENAI_API_KEY` or the app will not run.
